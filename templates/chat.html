@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - {{ agent_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col">
+    <header class="bg-white border-b border-gray-200 p-4 shadow-sm flex items-center">
+        <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
+            {{ agent_name[0] }}
+        </div>
+        <div>
+            <h1 class="text-lg font-bold text-gray-800">{{ agent_name }}</h1>
+            <p class="text-xs text-gray-500">Especialidad: {{ specialty }}</p>
+        </div>
+    </header>
+
+    <main id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-4 max-w-3xl mx-auto w-full">
+        <div class="flex justify-start">
+            <div class="bg-white border border-gray-200 text-gray-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm max-w-[80%] text-sm">
+                Hola, soy tu {{ agent_name }}. ¿En qué te puedo ayudar hoy?
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 p-4">
+        <div class="max-w-3xl mx-auto flex space-x-2">
+            <input type="text" id="message-input" placeholder="Escribe tu mensaje..." class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm">
+            <button id="send-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center transition">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                </svg>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const agentId = {{ agent_id }};
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function appendMessage(text, sender) {
+            const wrapper = document.createElement('div');
+            wrapper.className = sender === 'user' ? 'flex justify-end' : 'flex justify-start';
+            
+            const bubble = document.createElement('div');
+            bubble.className = sender === 'user' 
+                ? 'bg-indigo-600 text-white p-3 rounded-tl-xl rounded-br-xl rounded-bl-xl shadow-sm max-w-[80%] text-sm'
+                : 'bg-white border border-gray-200 text-gray-800 p-3 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm max-w-[80%] text-sm';
+            
+            bubble.textContent = text;
+            wrapper.appendChild(bubble);
+            chatContainer.appendChild(wrapper);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            appendMessage(text, 'user');
+            messageInput.value = '';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent_id: agentId, message: text })
+                });
+                const data = await response.json();
+                appendMessage(data.response, 'bot');
+            } catch (error) {
+                appendMessage('Error de conexión con el agente.', 'bot');
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
