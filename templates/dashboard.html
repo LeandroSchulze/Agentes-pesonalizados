@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Agentes IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <nav class="bg-indigo-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Agentes AI - Admin</h1>
+            <button class="bg-indigo-500 hover:bg-indigo-400 px-4 py-2 rounded-lg text-sm transition">+ Nuevo Agente</button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 mt-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-800">Tus Agentes Activos</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for agent in agents %}
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">{{ agent[1] }}</h3>
+                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mt-1">{{ agent[2] }}</span>
+                    </div>
+                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>{{ agent[3] }}
+                    </span>
+                </div>
+                <div class="mt-4 flex space-x-2">
+                    <a href="/agent/{{ agent[0] }}" target="_blank" class="w-full text-center bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium transition">Probar Chat</a>
+                    <button class="w-full text-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2 rounded-lg text-sm font-medium transition">Configurar</button>
+                </div>
+            </div>
+            {% end endfor %}
+        </div>
+    </main>
+</body>
+</html>
