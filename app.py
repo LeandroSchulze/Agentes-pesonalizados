@@ -4,6 +4,9 @@ import openai
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from functools import wraps
 
+# NUEVO: Herramientas para encriptar contraseñas de forma segura
+from werkzeug.security import generate_password_hash, check_password_hash
+
 # Importamos las funciones de nuestro procesador de documentos
 from document_processor import process_and_store_document, get_embedding
 
@@ -15,45 +18,113 @@ app.secret_key = os.getenv("SECRET_KEY", "super_secreto_mvp_2026")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/dbname")
 
-# CREDENCIALES DE ADMIN: Para el MVP
+# CREDENCIALES DE ADMIN (Acceso Maestro)
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@tuempresa.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "123456")
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# DECORADOR DE SEGURIDAD: El "patovica" que revisa si el usuario inició sesión
+# NUEVO: Actualización automática de la base de datos para soportar contraseñas
+try:
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("ALTER TABLE customers ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);")
+    conn.commit()
+    cur.close()
+    conn.close()
+except Exception as e:
+    print(f"Aviso DB (Ignorar si ya existe): {e}")
+
+# DECORADOR DE SEGURIDAD
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
-            # Si no hay sesión iniciada, lo mandamos al login
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
-# RUTA DE SEGURIDAD: Iniciar Sesión
+# RUTA DE SEGURIDAD: Iniciar Sesión (ACTUALIZADA PARA LEER LA BASE DE DATOS)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
         
+        # 1. Chequeo de Administrador Maestro
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             session['logged_in'] = True
+            session['user_role'] = 'admin'
+            return redirect(url_for('dashboard'))
+            
+        # 2. Chequeo de Clientes en PostgreSQL
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, password_hash FROM customers WHERE email = %s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+
+        # Verificamos si el usuario existe y si la contraseña coincide con el hash
+        if user and user[1] and check_password_hash(user[1], password):
+            session['logged_in'] = True
+            session['customer_id'] = user[0]
+            session['user_role'] = 'customer'
             return redirect(url_for('dashboard'))
         else:
-            return render_template('login.html', error="Credenciales inválidas")
+            return render_template('login.html', error="Correo o contraseña incorrectos")
             
     return render_template('login.html')
+
+# RUTA DE SEGURIDAD: Crear Cuenta (NUEVA)
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        # Encriptamos la contraseña antes de guardarla
+        hashed_pw = generate_password_hash(password)
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute(
+                "INSERT INTO customers (name, email, password_hash, subscription_plan) VALUES (%s, %s, %s, %s)",
+                (name, email, hashed_pw, 'Free')
+            )
+            conn.commit()
+            
+            # Autologueo después de registrarse
+            cur.execute("SELECT id FROM customers WHERE email = %s", (email,))
+            new_user = cur.fetchone()
+            session['logged_in'] = True
+            session['customer_id'] = new_user[0]
+            session['user_role'] = 'customer'
+            
+            return redirect(url_for('dashboard'))
+            
+        except psycopg2.errors.UniqueViolation:
+            conn.rollback()
+            return render_template('register.html', error="Este correo ya está registrado en la plataforma.")
+        except Exception as e:
+            conn.rollback()
+            return render_template('register.html', error=f"Error interno: {str(e)}")
+        finally:
+            cur.close()
+            conn.close()
+            
+    return render_template('register.html')
 
 # RUTA DE SEGURIDAD: Cerrar Sesión
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
+    session.clear() # Limpia todos los datos de la sesión
     return redirect(url_for('login'))
 
-# RUTA 1: Dashboard de Administración (AHORA PROTEGIDA)
+# RUTA 1: Dashboard de Administración
 @app.route('/')
 @login_required
 def dashboard():
@@ -65,7 +136,7 @@ def dashboard():
     conn.close()
     return render_template('dashboard.html', agents=agents)
 
-# RUTA 2: Interfaz del Cliente (El Chat - Pública para tus clientes)
+# RUTA 2: Interfaz del Cliente (El Chat)
 @app.route('/agent/<int:agent_id>')
 def agent_chat(agent_id):
     conn = get_db_connection()
@@ -78,7 +149,7 @@ def agent_chat(agent_id):
         return "Agente no encontrado", 404
     return render_template('chat.html', agent_id=agent_id, agent_name=agent[0], specialty=agent[1])
 
-# RUTA 3: API para procesar mensajes (CON RAG)
+# RUTA 3: API para procesar mensajes
 @app.route('/api/chat', methods=['POST'])
 def process_chat():
     data = request.json
@@ -99,11 +170,7 @@ def process_chat():
     # --- INICIO LÓGICA DE MEMORIA (RAG) ---
     contexto_extra = ""
     try:
-        # 1. Convertir la pregunta del usuario en un vector
         user_vector = get_embedding(user_message)
-        
-        # 2. Buscar en PostgreSQL los 3 fragmentos de PDF más relevantes 
-        # usando el operador de distancia coseno (<=>) de pgvector
         cur.execute("""
             SELECT chunk_text 
             FROM knowledge_base 
@@ -114,14 +181,12 @@ def process_chat():
         
         resultados = cur.fetchall()
         
-        # Si encontró documentos, armamos un contexto para inyectarle al prompt
         if resultados:
             fragmentos = "\n---\n".join([row[0] for row in resultados])
             contexto_extra = f"\n\nINFORMACIÓN DE CONTEXTO DE TUS DOCUMENTOS:\n{fragmentos}\n\nUsa esta información para responder a la consulta del usuario si es relevante."
     except Exception as e:
-        print(f"Aviso: No se pudo recuperar contexto (probablemente el agente aún no tiene PDFs). Detalle: {e}")
+        print(f"Aviso: No se pudo recuperar contexto. Detalle: {e}")
 
-    # Unimos la personalidad original del agente con la memoria extraída de los PDFs
     prompt_final = system_prompt + contexto_extra
     # --- FIN LÓGICA DE MEMORIA ---
 
@@ -135,7 +200,6 @@ def process_chat():
         )
         ai_response = response.choices[0].message.content
         
-        # Guardar historial en BD
         cur.execute(
             "INSERT INTO chat_history (agent_id, user_message, ai_response) VALUES (%s, %s, %s)",
             (agent_id, user_message, ai_response)
@@ -163,7 +227,6 @@ def upload_document():
         return jsonify({"success": False, "error": "Archivo sin nombre."}), 400
         
     if file and file.filename.endswith('.pdf'):
-        # Enviamos el archivo en memoria directamente al procesador (sin guardarlo en disco físico)
         resultado = process_and_store_document(agent_id, file.filename, file.stream)
         return jsonify(resultado)
     else:
