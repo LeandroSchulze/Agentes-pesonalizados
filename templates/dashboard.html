@@ -52,12 +52,10 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
         
-        <!-- SECCIÓN 1: MIS AGENTES -->
         <section class="mb-16">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold text-slate-900 tracking-tight">Agentes Desplegados</h2>
-                <span class="bg-slate-100 text-slate-500 text-xs font-bold px-2.5 py-1 rounded-full border border-slate-200">{{ mis_agentes|length }} / 3 Plan Trial</span>
-            </div>
+                </div>
             
             {% if mis_agentes %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -113,7 +111,6 @@
             {% endif %}
         </section>
 
-        <!-- SECCIÓN 2: CATÁLOGO -->
         <section>
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-slate-900 tracking-tight">Catálogo de Inteligencia</h2>
@@ -148,7 +145,6 @@
     </main>
 
     <script>
-        // Script para subir PDFs
         async function uploadPDF(event, agentId) {
             event.preventDefault();
             const fileInput = document.getElementById(`file-${agentId}`);
@@ -191,7 +187,6 @@
             }
         }
 
-        // Script para instanciar agentes desde el catálogo
         async function instanciarAgente(agentId) {
             try {
                 const response = await fetch('/api/instanciar', {
@@ -203,7 +198,6 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Si funcionó, recarga la página para mostrarlo en el Workspace
                     window.location.reload(); 
                 } else {
                     alert("No se pudo agregar: " + data.error);
