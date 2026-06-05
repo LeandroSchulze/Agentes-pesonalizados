@@ -8,15 +8,16 @@ def init_db():
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
     
-    # 1. Activar la extensión vectorial de PostgreSQL
+    # 1. Activar la extensión vectorial
     cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
     
-    # 2. Crear tablas originales
+    # 2. Tablas base (Actualizadas)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS customers (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100),
             email VARCHAR(100) UNIQUE,
+            password_hash VARCHAR(255),
             subscription_plan VARCHAR(50),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
@@ -32,27 +33,48 @@ def init_db():
         CREATE TABLE IF NOT EXISTS chat_history (
             id SERIAL PRIMARY KEY,
             agent_id INTEGER REFERENCES agents(id),
+            customer_id INTEGER REFERENCES customers(id),
             user_message TEXT,
             ai_response TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
 
-    # 3. Crear la nueva tabla para la Memoria de los Agentes (RAG)
+    # 3. NUEVA TABLA: El "Workspace" (Qué agentes instanció cada cliente)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS customer_agents (
+            id SERIAL PRIMARY KEY,
+            customer_id INTEGER REFERENCES customers(id),
+            agent_id INTEGER REFERENCES agents(id),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(customer_id, agent_id)
+        );
+    """)
+
+    # 4. Tabla de Memoria (RAG)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_base (
             id SERIAL PRIMARY KEY,
             agent_id INTEGER REFERENCES agents(id),
+            customer_id INTEGER REFERENCES customers(id),
             document_name VARCHAR(255),
             chunk_text TEXT,
             embedding vector(1536), 
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
-    conn.commit()
-    print("Tablas y extensión vectorial verificadas/creadas.")
+    
+    # Parche de seguridad automático por si las tablas ya existían en tu DB
+    try:
+        cur.execute("ALTER TABLE knowledge_base ADD COLUMN IF NOT EXISTS customer_id INTEGER REFERENCES customers(id);")
+        cur.execute("ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS customer_id INTEGER REFERENCES customers(id);")
+    except:
+        pass
 
-    # Sincronizar agentes desde el JSON
+    conn.commit()
+    print("Tablas verificadas. Aislamiento de datos (Multi-tenant) configurado.")
+
+    # Sincronizar catálogo de agentes desde el JSON
     try:
         with open('agents_config.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -66,7 +88,7 @@ def init_db():
             """, (agent['id'], agent['name'], agent['specialty'], agent['system_prompt']))
         
         conn.commit()
-        print("Agentes sincronizados.")
+        print("Catálogo de agentes sincronizado.")
     except Exception as e:
         print(f"Aviso: No se pudo sincronizar agents_config.json. Detalle: {e}")
 
