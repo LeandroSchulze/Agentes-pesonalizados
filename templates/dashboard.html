@@ -3,47 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Agentes IA</title>
+    <title>Panel de Control - Inteligencia de Procesos</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <nav class="bg-indigo-600 text-white p-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Agentes AI - Admin</h1>
-            <button class="bg-indigo-500 hover:bg-indigo-400 px-4 py-2 rounded-lg text-sm transition">+ Nuevo Agente</button>
+<body class="bg-slate-50 text-slate-800">
+    <nav class="bg-slate-900 text-white border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center font-bold text-lg tracking-tighter shadow-sm">
+                        C
+                    </div>
+                    <span class="text-xl font-semibold tracking-tight">Process Intelligence AI</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <span class="text-sm text-slate-400">Workspace: <span class="font-semibold text-white">Producción</span></span>
+                    <a href="/logout" class="text-sm text-slate-400 hover:text-white transition duration-150 ease-in-out">Cerrar Sesión</a>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <main class="container mx-auto p-4 mt-6">
-        <h2 class="text-xl font-semibold mb-4 text-gray-800">Tus Agentes Activos</h2>
-        
+    <header class="bg-white border-b border-gray-200 py-8 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Tus Agentes Activos</h1>
+                <p class="mt-2 text-sm text-slate-500">Gestiona, entrena y monitorea la inteligencia de tus procesos operativos.</p>
+            </div>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded shadow-sm transition flex items-center text-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Nuevo Agente
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for agent in agents %}
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900">{{ agent[1] }}</h3>
-                        <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full mt-1">{{ agent[2] }}</span>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-200 flex flex-col">
+                <div class="p-6 flex-grow">
+                    <div class="flex justify-between items-start mb-5">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900 leading-tight">{{ agent[1] }}</h3>
+                                <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{{ agent[2] }}</span>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>{{ agent[3] }}
+                        </span>
                     </div>
-                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center">
-                        <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>{{ agent[3] }}
-                    </span>
+                    
+                    <div class="mt-6">
+                        <a href="/agent/{{ agent[0] }}" target="_blank" class="w-full flex justify-center items-center px-4 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded text-slate-700 bg-white hover:bg-slate-50 hover:text-blue-600 transition">
+                            <svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                            Abrir Consola de Chat
+                        </a>
+                    </div>
                 </div>
                 
-                <div class="mt-4 flex space-x-2">
-                    <a href="/agent/{{ agent[0] }}" target="_blank" class="w-full text-center bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium transition">Probar Chat</a>
-                    <button class="w-full text-center bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2 rounded-lg text-sm font-medium transition">Configurar</button>
+                <div class="bg-slate-50 px-6 py-5 border-t border-gray-200">
+                    <form id="upload-form-{{ agent[0] }}" class="flex flex-col" onsubmit="uploadPDF(event, {{ agent[0] }})">
+                        <label class="block text-[11px] font-bold text-slate-500 mb-3 uppercase tracking-wider">Inyectar Base de Conocimiento</label>
+                        <div class="flex items-center space-x-2">
+                            <label class="flex-1 cursor-pointer bg-white border border-slate-300 hover:border-blue-400 rounded px-3 py-2 text-xs text-slate-500 transition relative overflow-hidden shadow-sm">
+                                <span class="truncate block" id="file-name-{{ agent[0] }}">Seleccionar archivo PDF...</span>
+                                <input type="file" id="file-{{ agent[0] }}" accept=".pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('file-name-{{ agent[0] }}').innerText = this.files[0].name">
+                            </label>
+                            <button type="submit" id="btn-{{ agent[0] }}" class="bg-slate-800 text-white px-4 py-2 rounded text-xs font-medium hover:bg-slate-900 shadow-sm transition">Entrenar</button>
+                        </div>
+                        <p id="status-{{ agent[0] }}" class="text-xs mt-3 hidden font-medium"></p>
+                    </form>
                 </div>
-
-                <form id="upload-form-{{ agent[0] }}" class="mt-5 border-t border-gray-100 pt-4" onsubmit="uploadPDF(event, {{ agent[0] }})">
-                    <label class="block text-xs font-semibold text-gray-600 mb-2">Entrenar con Documento (PDF):</label>
-                    <div class="flex items-center space-x-2">
-                        <input type="file" id="file-{{ agent[0] }}" accept=".pdf" required 
-                            class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                        <button type="submit" id="btn-{{ agent[0] }}" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition">Subir</button>
-                    </div>
-                    <p id="status-{{ agent[0] }}" class="text-xs mt-2 hidden font-medium"></p>
-                </form>
             </div>
             {% endfor %}
         </div>
@@ -51,50 +89,47 @@
 
     <script>
         async function uploadPDF(event, agentId) {
-            event.preventDefault(); // Evita que la página se recargue
+            event.preventDefault();
             
             const fileInput = document.getElementById(`file-${agentId}`);
             const statusText = document.getElementById(`status-${agentId}`);
             const btn = document.getElementById(`btn-${agentId}`);
+            const fileLabel = document.getElementById(`file-name-${agentId}`);
             const file = fileInput.files[0];
 
             if (!file) return;
 
-            // Cambiar estado visual mientras sube
+            // Animación de carga en el botón
             btn.disabled = true;
-            btn.innerText = "Subiendo...";
-            statusText.classList.remove('hidden', 'text-red-500', 'text-green-500');
-            statusText.classList.add('text-indigo-500');
-            statusText.innerText = "Procesando y vectorizando documento...";
+            btn.innerHTML = `<svg class="animate-spin h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            statusText.classList.remove('hidden', 'text-red-500', 'text-green-600');
+            statusText.classList.add('text-blue-600');
+            statusText.innerText = "Sincronizando conocimiento y generando vectores...";
 
-            // Preparar los datos
             const formData = new FormData();
             formData.append('file', file);
             formData.append('agent_id', agentId);
 
             try {
-                // Enviar al backend
-                const response = await fetch('/api/upload_doc', {
-                    method: 'POST',
-                    body: formData
-                });
-                
+                const response = await fetch('/api/upload_doc', { method: 'POST', body: formData });
                 const data = await response.json();
 
                 if (data.success) {
-                    statusText.classList.replace('text-indigo-500', 'text-green-500');
-                    statusText.innerText = "¡Agente entrenado con éxito!";
-                    fileInput.value = ""; // Limpiar el input
+                    statusText.classList.replace('text-blue-600', 'text-green-600');
+                    statusText.innerText = "✓ Conocimiento inyectado exitosamente";
+                    fileInput.value = ""; 
+                    fileLabel.innerText = "Seleccionar archivo PDF...";
+                    // Ocultar mensaje de éxito tras unos segundos
+                    setTimeout(() => { statusText.classList.add('hidden'); }, 5000);
                 } else {
-                    throw new Error(data.error || "Error desconocido");
+                    throw new Error(data.error || "Error de procesamiento");
                 }
             } catch (error) {
-                statusText.classList.replace('text-indigo-500', 'text-red-500');
-                statusText.innerText = "Error: " + error.message;
+                statusText.classList.replace('text-blue-600', 'text-red-500');
+                statusText.innerText = "✕ Error: " + error.message;
             } finally {
-                // Restaurar botón
                 btn.disabled = false;
-                btn.innerText = "Subir";
+                btn.innerText = "Entrenar";
             }
         }
     </script>
