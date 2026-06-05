@@ -1,20 +1,61 @@
 import os
 import psycopg2
 import openai
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from functools import wraps
 
-# NUEVO: Importamos las funciones de nuestro procesador de documentos
+# Importamos las funciones de nuestro procesador de documentos
 from document_processor import process_and_store_document, get_embedding
 
 app = Flask(__name__)
+
+# LLAVE DE SEGURIDAD: Necesaria para encriptar la sesión del usuario
+app.secret_key = os.getenv("SECRET_KEY", "super_secreto_mvp_2026")
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/dbname")
+
+# CREDENCIALES DE ADMIN: Para el MVP
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@tuempresa.com")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "123456")
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL)
 
-# RUTA 1: Dashboard de Administración
+# DECORADOR DE SEGURIDAD: El "patovica" que revisa si el usuario inició sesión
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session:
+            # Si no hay sesión iniciada, lo mandamos al login
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# RUTA DE SEGURIDAD: Iniciar Sesión
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template('login.html', error="Credenciales inválidas")
+            
+    return render_template('login.html')
+
+# RUTA DE SEGURIDAD: Cerrar Sesión
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
+# RUTA 1: Dashboard de Administración (AHORA PROTEGIDA)
 @app.route('/')
+@login_required
 def dashboard():
     conn = get_db_connection()
     cur = conn.cursor()
@@ -24,7 +65,7 @@ def dashboard():
     conn.close()
     return render_template('dashboard.html', agents=agents)
 
-# RUTA 2: Interfaz del Cliente (El Chat)
+# RUTA 2: Interfaz del Cliente (El Chat - Pública para tus clientes)
 @app.route('/agent/<int:agent_id>')
 def agent_chat(agent_id):
     conn = get_db_connection()
@@ -37,7 +78,7 @@ def agent_chat(agent_id):
         return "Agente no encontrado", 404
     return render_template('chat.html', agent_id=agent_id, agent_name=agent[0], specialty=agent[1])
 
-# RUTA 3: API para procesar mensajes (ACTUALIZADA CON RAG)
+# RUTA 3: API para procesar mensajes (CON RAG)
 @app.route('/api/chat', methods=['POST'])
 def process_chat():
     data = request.json
@@ -108,7 +149,7 @@ def process_chat():
     
     return jsonify({"response": ai_response})
 
-# RUTA 4: API para subir documentos (NUEVA)
+# RUTA 4: API para subir documentos 
 @app.route('/api/upload_doc', methods=['POST'])
 def upload_document():
     agent_id = request.form.get('agent_id')
