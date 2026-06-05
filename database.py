@@ -8,7 +8,10 @@ def init_db():
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
     
-    # Crear tablas
+    # 1. Activar la extensión vectorial de PostgreSQL
+    cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+    
+    # 2. Crear tablas originales
     cur.execute("""
         CREATE TABLE IF NOT EXISTS customers (
             id SERIAL PRIMARY KEY,
@@ -34,23 +37,39 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
+
+    # 3. Crear la nueva tabla para la Memoria de los Agentes (RAG)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS knowledge_base (
+            id SERIAL PRIMARY KEY,
+            agent_id INTEGER REFERENCES agents(id),
+            document_name VARCHAR(255),
+            chunk_text TEXT,
+            embedding vector(1536), 
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
     conn.commit()
-    print("Tablas verificadas/creadas.")
+    print("Tablas y extensión vectorial verificadas/creadas.")
 
     # Sincronizar agentes desde el JSON
-    with open('agents_config.json', 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    try:
+        with open('agents_config.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            
+        for agent in data['agents']:
+            cur.execute("""
+                INSERT INTO agents (id, name, specialty, system_prompt) 
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET 
+                name = EXCLUDED.name, specialty = EXCLUDED.specialty, system_prompt = EXCLUDED.system_prompt;
+            """, (agent['id'], agent['name'], agent['specialty'], agent['system_prompt']))
         
-    for agent in data['agents']:
-        cur.execute("""
-            INSERT INTO agents (id, name, specialty, system_prompt) 
-            VALUES (%s, %s, %s, %s)
-            ON CONFLICT (id) DO UPDATE SET 
-            name = EXCLUDED.name, specialty = EXCLUDED.specialty, system_prompt = EXCLUDED.system_prompt;
-        """, (agent['id'], agent['name'], agent['specialty'], agent['system_prompt']))
-    
-    conn.commit()
-    print("Agentes sincronizados.")
+        conn.commit()
+        print("Agentes sincronizados.")
+    except Exception as e:
+        print(f"Aviso: No se pudo sincronizar agents_config.json. Detalle: {e}")
+
     cur.close()
     conn.close()
 
