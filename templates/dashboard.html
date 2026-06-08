@@ -55,7 +55,7 @@
         <section class="mb-16">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-xl font-bold text-slate-900 tracking-tight">Agentes Desplegados</h2>
-                </div>
+            </div>
             
             {% if mis_agentes %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -143,6 +143,15 @@
         </section>
 
     </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs">
+            <p class="mb-4 md:mb-0 max-w-3xl leading-relaxed">
+                <strong class="text-slate-300">Aviso Legal:</strong> Los agentes de inteligencia artificial proporcionan información basada en la ingesta de documentos RAG y sus modelos fundacionales. Las respuestas generadas no constituyen asesoramiento profesional, legal, médico o financiero vinculante. Recomendamos verificar siempre los datos críticos antes de la toma de decisiones.
+            </p>
+            <p class="whitespace-nowrap">&copy; 2026 Process Intelligence AI. Todos los derechos reservados.</p>
+        </div>
+    </footer>
 
     <script>
         async function uploadPDF(event, agentId) {
