@@ -3,7 +3,6 @@ import psycopg2
 import openai
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from functools import wraps
-
 from werkzeug.security import generate_password_hash, check_password_hash
 from document_processor import process_and_store_document, get_embedding
 
@@ -108,7 +107,6 @@ def logout():
     session.clear() 
     return redirect(url_for('login'))
 
-# RUTA 1: Dashboard Dividido (Workspace vs Catálogo)
 @app.route('/')
 @login_required
 def dashboard():
@@ -118,9 +116,9 @@ def dashboard():
     
     mis_agentes = []
     catalogo = []
+    docs_por_agente = {}
 
     if customer_id:
-        # 1. Traer solo los agentes que el cliente agregó a su Workspace
         cur.execute("""
             SELECT a.id, a.name, a.specialty, a.status 
             FROM agents a 
@@ -130,7 +128,6 @@ def dashboard():
         """, (customer_id,))
         mis_agentes = cur.fetchall()
 
-        # 2. Traer el resto de agentes para mostrarlos en el Catálogo
         cur.execute("""
             SELECT id, name, specialty, status 
             FROM agents 
@@ -138,16 +135,31 @@ def dashboard():
             ORDER BY id;
         """, (customer_id,))
         catalogo = cur.fetchall()
+
+        # 🛡️ EXTRAER LOS DOCUMENTOS QUE YA SUBIÓ EL CLIENTE
+        cur.execute("""
+            SELECT agent_id, document_name 
+            FROM knowledge_base 
+            WHERE customer_id = %s 
+            GROUP BY agent_id, document_name;
+        """, (customer_id,))
+        docs_raw = cur.fetchall()
+        
+        for row in docs_raw:
+            a_id = row[0]
+            d_name = row[1]
+            if a_id not in docs_por_agente:
+                docs_por_agente[a_id] = []
+            docs_por_agente[a_id].append(d_name)
+
     else:
-        # Vista de Administrador Maestro (ve el catálogo completo)
         cur.execute("SELECT id, name, specialty, status FROM agents ORDER BY id;")
         catalogo = cur.fetchall()
 
     cur.close()
     conn.close()
-    return render_template('dashboard.html', mis_agentes=mis_agentes, catalogo=catalogo)
+    return render_template('dashboard.html', mis_agentes=mis_agentes, catalogo=catalogo, docs_por_agente=docs_por_agente)
 
-# NUEVA RUTA: Para instanciar agentes desde el catálogo
 @app.route('/api/instanciar', methods=['POST'])
 @login_required
 def instanciar_agente():
@@ -156,7 +168,7 @@ def instanciar_agente():
     customer_id = session.get('customer_id')
 
     if not customer_id:
-        return jsonify({"success": False, "error": "Acceso denegado: Usa una cuenta de cliente."}), 403
+        return jsonify({"success": False, "error": "Acceso denegado."}), 403
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -178,6 +190,7 @@ def instanciar_agente():
         conn.close()
 
 @app.route('/agent/<int:agent_id>')
+@login_required
 def agent_chat(agent_id):
     conn = get_db_connection()
     cur = conn.cursor()
@@ -190,6 +203,7 @@ def agent_chat(agent_id):
     return render_template('chat.html', agent_id=agent_id, agent_name=agent[0], specialty=agent[1])
 
 @app.route('/api/chat', methods=['POST'])
+@login_required
 def process_chat():
     data = request.json
     agent_id = data.get('agent_id')
@@ -199,6 +213,15 @@ def process_chat():
     conn = get_db_connection()
     cur = conn.cursor()
     
+    # 🛡️ PROTECCIÓN 2: Tope de 50 mensajes diarios por usuario
+    cur.execute("SELECT COUNT(*) FROM chat_history WHERE customer_id = %s AND created_at >= CURRENT_DATE", (customer_id,))
+    daily_msgs = cur.fetchone()[0]
+    
+    if daily_msgs >= 50:
+        cur.close()
+        conn.close()
+        return jsonify({"response": "Has alcanzado el límite diario de 50 consultas de tu plan. Por favor, contacta a soporte para ampliar tu capacidad."})
+
     cur.execute("SELECT system_prompt, model_version FROM agents WHERE id = %s", (agent_id,))
     agent_data = cur.fetchone()
     
@@ -207,7 +230,6 @@ def process_chat():
         
     system_prompt, model_version = agent_data
 
-    # Aislamiento RAG: Busca solo en los PDFs subidos por ESTE cliente
     contexto_extra = ""
     try:
         user_vector = get_embedding(user_message)
@@ -253,12 +275,10 @@ def process_chat():
     return jsonify({"response": ai_response})
 
 @app.route('/api/upload_doc', methods=['POST'])
+@login_required
 def upload_document():
     agent_id = request.form.get('agent_id')
     customer_id = session.get('customer_id')
-
-    if not customer_id:
-        return jsonify({"success": False, "error": "Sesión inválida."}), 403
     
     if 'file' not in request.files:
         return jsonify({"success": False, "error": "No se envió ningún archivo."}), 400
@@ -269,11 +289,33 @@ def upload_document():
         return jsonify({"success": False, "error": "Archivo sin nombre."}), 400
         
     if file and file.filename.endswith('.pdf'):
-        # Pasamos el customer_id al motor de procesamiento
         resultado = process_and_store_document(agent_id, customer_id, file.filename, file.stream)
         return jsonify(resultado)
     else:
-        return jsonify({"success": False, "error": "Por el momento, solo se permiten archivos PDF."}), 400
+        return jsonify({"success": False, "error": "Solo se permiten archivos PDF."}), 400
+
+# 🛡️ PROTECCIÓN 3: Nueva API para borrar documentos de la memoria
+@app.route('/api/delete_doc', methods=['POST'])
+@login_required
+def delete_document():
+    data = request.json
+    agent_id = data.get('agent_id')
+    doc_name = data.get('document_name')
+    customer_id = session.get('customer_id')
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM knowledge_base WHERE customer_id = %s AND agent_id = %s AND document_name = %s", 
+                   (customer_id, agent_id, doc_name))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"success": False, "error": "No se pudo eliminar el documento."})
+    finally:
+        cur.close()
+        conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
