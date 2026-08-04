@@ -9,16 +9,36 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .bg-gradient-dark { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        
         /* Animación suave para cuando aparece el catálogo */
         .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Patrón de grilla sutil para el fondo claro */
+        .bg-grid-light {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="text-slate-800 min-h-screen flex flex-col relative overflow-x-hidden">
 
+    <!-- Fondo Dinámico con Grilla y Luces -->
+    <div class="fixed inset-0 z-[-1] bg-slate-50 bg-grid-light">
+        <!-- Luz azul superior izquierda -->
+        <div class="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"></div>
+        <!-- Luz índigo central derecha -->
+        <div class="absolute top-[40%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none"></div>
+        <!-- Luz celeste inferior -->
+        <div class="absolute bottom-[-10%] left-[20%] w-[30vw] h-[30vw] rounded-full bg-sky-400/10 blur-[100px] pointer-events-none"></div>
+    </div>
+
+    <!-- Barra Superior de Aviso -->
     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-center shadow-md relative z-20">
         <p class="text-sm text-white font-medium">
             <span class="bg-white/20 px-2 py-0.5 rounded text-xs mr-2 font-bold uppercase tracking-wider">Free Trial</span>
@@ -27,7 +47,8 @@
         </p>
     </div>
 
-    <nav class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-10">
+    <!-- Navegación -->
+    <nav class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-10 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center space-x-3">
@@ -45,7 +66,8 @@
         </div>
     </nav>
 
-    <header class="bg-gradient-dark py-12 border-b border-slate-800">
+    <!-- Cabecera -->
+    <header class="bg-gradient-dark py-12 border-b border-slate-800 shadow-inner">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
                 <h1 class="text-3xl font-bold text-white tracking-tight">Tu Espacio de Trabajo</h1>
@@ -54,7 +76,8 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+    <!-- Contenido Principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full relative z-10">
         
         {% if mis_agentes %}
         <!-- VISTA 1: EL CLIENTE YA TIENE AGENTES DESPLEGADOS -->
@@ -73,11 +96,11 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for agent in mis_agentes %}
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-200 flex flex-col">
+                <div class="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition duration-300 flex flex-col">
                     <div class="p-6 flex-grow">
                         <div class="flex justify-between items-start mb-5">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                 </div>
                                 <div>
@@ -85,8 +108,8 @@
                                     <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{{ agent[2] }}</span>
                                 </div>
                             </div>
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>{{ agent[3] }}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200 shadow-sm">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>{{ agent[3] }}
                             </span>
                         </div>
                         <div class="mt-6">
@@ -97,15 +120,15 @@
                         </div>
                     </div>
                     
-                    <div class="bg-slate-50 px-6 py-5 border-t border-gray-200">
+                    <div class="bg-white/90 px-6 py-5 border-t border-gray-200">
                         <form id="upload-form-{{ agent[0] }}" class="flex flex-col" onsubmit="uploadPDF(event, {{ agent[0] }})">
                             <label class="block text-[11px] font-bold text-slate-500 mb-3 uppercase tracking-wider">Inyectar Base de Conocimiento</label>
                             <div class="flex items-center space-x-2">
-                                <label class="flex-1 cursor-pointer bg-white border border-slate-300 hover:border-blue-400 rounded px-3 py-2 text-xs text-slate-500 transition relative overflow-hidden shadow-sm">
+                                <label class="flex-1 cursor-pointer bg-slate-50 border border-slate-300 hover:border-blue-400 rounded px-3 py-2 text-xs text-slate-500 transition relative overflow-hidden shadow-inner">
                                     <span class="truncate block" id="file-name-{{ agent[0] }}">Seleccionar archivo PDF...</span>
                                     <input type="file" id="file-{{ agent[0] }}" accept=".pdf" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('file-name-{{ agent[0] }}').innerText = this.files[0].name">
                                 </label>
-                                <button type="submit" id="btn-{{ agent[0] }}" class="bg-slate-800 text-white px-4 py-2 rounded text-xs font-medium hover:bg-slate-900 shadow-sm transition">Entrenar</button>
+                                <button type="submit" id="btn-{{ agent[0] }}" class="bg-slate-800 text-white px-4 py-2 rounded text-xs font-medium hover:bg-slate-900 shadow-md transition">Entrenar</button>
                             </div>
                             <p id="status-{{ agent[0] }}" class="text-xs mt-3 hidden font-medium"></p>
                         </form>
@@ -115,7 +138,7 @@
                             <ul id="doc-list-{{ agent[0] }}" class="space-y-2">
                                 {% if agent[0] in docs_por_agente %}
                                     {% for doc in docs_por_agente[agent[0]] %}
-                                    <li class="flex justify-between items-center text-xs bg-white border border-slate-200 p-2 rounded shadow-sm">
+                                    <li class="flex justify-between items-center text-xs bg-slate-50 border border-slate-200 p-2 rounded shadow-sm">
                                         <span class="truncate text-slate-600 font-medium" title="{{ doc }}">{{ doc }}</span>
                                         <button type="button" onclick="deleteDocument({{ agent[0] }}, '{{ doc }}')" class="text-red-500 hover:text-red-700 ml-2" title="Eliminar documento">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -136,18 +159,18 @@
         {% else %}
         <!-- VISTA 2: EL CLIENTE ESTÁ VACÍO (BIENVENIDA) -->
         <section class="mb-16 text-center max-w-2xl mx-auto py-12">
-            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-100 shadow-sm">
-                <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            <div class="w-20 h-20 bg-blue-50/80 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-200 shadow-md">
+                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
             </div>
             <h2 class="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Bienvenido a tu Workspace</h2>
-            <p class="text-base text-slate-500 mb-8 leading-relaxed">Tu espacio de trabajo está limpio y listo. Selecciona tu primer agente especializado del catálogo a continuación para comenzar a automatizar tus procesos operativos.</p>
+            <p class="text-base text-slate-600 mb-8 leading-relaxed">Tu espacio de trabajo está limpio y listo. Selecciona tu primer agente especializado del catálogo a continuación para comenzar a automatizar tus procesos operativos.</p>
         </section>
         {% endif %}
 
         <!-- SECCIÓN: CATÁLOGO DE INTELIGENCIA -->
         <!-- Si tiene agentes, esto arranca oculto. Si no tiene, arranca visible. -->
-        <section id="catalog-section" class="{% if mis_agentes %}hidden{% endif %} bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-8">
-            <div class="bg-slate-50 border-b border-slate-200 px-6 py-6 sm:flex sm:items-center sm:justify-between">
+        <section id="catalog-section" class="{% if mis_agentes %}hidden{% endif %} bg-white/90 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-lg overflow-hidden mt-8">
+            <div class="bg-slate-50/80 border-b border-slate-200 px-6 py-6 sm:flex sm:items-center sm:justify-between">
                 <div>
                     <h2 class="text-xl font-bold text-slate-900 tracking-tight">Catálogo de Inteligencia</h2>
                     <p class="text-sm text-slate-500 mt-1">Modelos base listos para ser instanciados y entrenados con tu conocimiento.</p>
@@ -161,12 +184,12 @@
 
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for agent in catalogo %}
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition duration-300 flex flex-col group relative">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg hover:border-indigo-300 transition duration-300 flex flex-col group relative">
                     <div class="absolute top-4 right-4 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide opacity-0 group-hover:opacity-100 transition">
                         Incluido en Trial
                     </div>
                     <div class="p-6 flex-grow">
-                        <div class="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 mb-5 border border-indigo-100">
+                        <div class="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 mb-5 border border-indigo-100 shadow-inner">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                         </div>
                         <h3 class="text-lg font-bold text-slate-900 leading-tight mb-1">{{ agent[1] }}</h3>
@@ -186,7 +209,8 @@
 
     </main>
 
-    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-6 mt-auto">
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-6 mt-auto relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs">
             <p class="mb-4 md:mb-0 max-w-3xl leading-relaxed">
                 <strong class="text-slate-300">Process Intelligence AI:</strong> Herramienta de asistencia tecnológica.
@@ -274,14 +298,13 @@
         </div>
     </div>
 
+    <!-- Scripts -->
     <script>
-        // Nueva función para desplegar el catálogo con estilo
         function toggleCatalog() {
             const catalog = document.getElementById('catalog-section');
             if (catalog.classList.contains('hidden')) {
                 catalog.classList.remove('hidden');
                 catalog.classList.add('fade-in-up');
-                // Un scroll suave para que el usuario sepa que apareció
                 setTimeout(() => {
                     catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
