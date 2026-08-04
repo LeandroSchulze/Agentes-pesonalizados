@@ -9,6 +9,12 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .bg-gradient-dark { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        /* Animación suave para cuando aparece el catálogo */
+        .fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
@@ -50,12 +56,21 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
         
+        {% if mis_agentes %}
+        <!-- VISTA 1: EL CLIENTE YA TIENE AGENTES DESPLEGADOS -->
         <section class="mb-16">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-bold text-slate-900 tracking-tight">Agentes Desplegados</h2>
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Agentes Desplegados</h2>
+                    <p class="text-sm text-slate-500 mt-1">Tu equipo virtual listo para operar.</p>
+                </div>
+                <!-- Botón dinámico para mostrar el catálogo -->
+                <button onclick="toggleCatalog()" class="mt-4 sm:mt-0 inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg shadow-sm transition">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Añadir Nuevo Agente
+                </button>
             </div>
             
-            {% if mis_agentes %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for agent in mis_agentes %}
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition duration-200 flex flex-col">
@@ -112,29 +127,39 @@
                                 {% endif %}
                             </ul>
                         </div>
-
                     </div>
                 </div>
                 {% endfor %}
             </div>
-            {% else %}
-            <div class="bg-white border border-dashed border-slate-300 rounded-xl p-12 text-center flex flex-col items-center justify-center">
-                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
-                    <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                </div>
-                <h3 class="text-lg font-bold text-slate-900 mb-1">Tu workspace está vacío</h3>
-                <p class="text-sm text-slate-500 max-w-md mx-auto mb-6">Todavía no has agregado ningún especialista a tu equipo. Selecciona uno de nuestro catálogo pre-entrenado para comenzar.</p>
-            </div>
-            {% endif %}
         </section>
 
-        <section>
-            <div class="mb-6">
-                <h2 class="text-xl font-bold text-slate-900 tracking-tight">Catálogo de Inteligencia</h2>
-                <p class="text-sm text-slate-500 mt-1">Modelos base listos para ser instanciados y entrenados con tu conocimiento corporativo.</p>
+        {% else %}
+        <!-- VISTA 2: EL CLIENTE ESTÁ VACÍO (BIENVENIDA) -->
+        <section class="mb-16 text-center max-w-2xl mx-auto py-12">
+            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-blue-100 shadow-sm">
+                <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-900 mb-4 tracking-tight">Bienvenido a tu Workspace</h2>
+            <p class="text-base text-slate-500 mb-8 leading-relaxed">Tu espacio de trabajo está limpio y listo. Selecciona tu primer agente especializado del catálogo a continuación para comenzar a automatizar tus procesos operativos.</p>
+        </section>
+        {% endif %}
+
+        <!-- SECCIÓN: CATÁLOGO DE INTELIGENCIA -->
+        <!-- Si tiene agentes, esto arranca oculto. Si no tiene, arranca visible. -->
+        <section id="catalog-section" class="{% if mis_agentes %}hidden{% endif %} bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-8">
+            <div class="bg-slate-50 border-b border-slate-200 px-6 py-6 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">Catálogo de Inteligencia</h2>
+                    <p class="text-sm text-slate-500 mt-1">Modelos base listos para ser instanciados y entrenados con tu conocimiento.</p>
+                </div>
+                {% if mis_agentes %}
+                <button onclick="toggleCatalog()" class="mt-4 sm:mt-0 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition" title="Cerrar Catálogo">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                {% endif %}
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for agent in catalogo %}
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-lg transition duration-300 flex flex-col group relative">
                     <div class="absolute top-4 right-4 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide opacity-0 group-hover:opacity-100 transition">
@@ -250,6 +275,22 @@
     </div>
 
     <script>
+        // Nueva función para desplegar el catálogo con estilo
+        function toggleCatalog() {
+            const catalog = document.getElementById('catalog-section');
+            if (catalog.classList.contains('hidden')) {
+                catalog.classList.remove('hidden');
+                catalog.classList.add('fade-in-up');
+                // Un scroll suave para que el usuario sepa que apareció
+                setTimeout(() => {
+                    catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            } else {
+                catalog.classList.add('hidden');
+                catalog.classList.remove('fade-in-up');
+            }
+        }
+
         function toggleSecurityModal() {
             const modal = document.getElementById('security-modal');
             modal.classList.toggle('hidden');
