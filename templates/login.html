@@ -116,3 +116,171 @@
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Process Intelligence AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen bg-white">
+
+    <div class="w-full md:w-5/12 lg:w-4/12 flex flex-col justify-between items-center px-8 sm:px-12 relative z-10 shadow-[10px_0_15px_-3px_rgba(0,0,0,0.1)] py-10">
+        
+        <div class="w-full max-w-sm mt-auto mb-auto">
+            <div class="flex items-center space-x-3 mb-10">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white text-xl shadow-md">
+                    C
+                </div>
+                <span class="text-2xl font-bold tracking-tight text-slate-900">Platform</span>
+            </div>
+
+            <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Acceso al Dashboard</h2>
+            <p class="text-sm text-slate-500 mt-2 mb-8">Ingresa tus credenciales para gestionar tu fuerza de trabajo virtual.</p>
+
+            {% if error %}
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm mb-6 flex items-center">
+                <svg class="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <form action="/login" method="POST" class="space-y-5">
+                <div>
+                    <label for="email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Correo Corporativo</label>
+                    <input type="email" id="email" name="email" required placeholder="nombre@empresa.com"
+                        class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contraseña</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••"
+                        class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm placeholder-slate-400 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition">
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition duration-200 ease-in-out">
+                        Iniciar Sesión
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-sm text-slate-500">
+                    ¿Primera vez aquí? 
+                    <a href="/register" class="font-semibold text-blue-600 hover:text-blue-800 transition">Configurar organización</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Enlace al Centro de Confianza en la base del login -->
+        <div class="w-full max-w-sm text-center mt-12">
+            <button onclick="toggleSecurityModal()" class="text-xs font-medium text-slate-400 hover:text-blue-600 flex items-center justify-center mx-auto transition">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                Centro de Confianza y Seguridad
+            </button>
+        </div>
+    </div>
+
+    <div class="hidden md:flex md:w-7/12 lg:w-8/12 bg-slate-900 bg-grid-pattern relative overflow-hidden flex-col justify-center px-16 lg:px-24">
+        
+        <div class="absolute top-0 right-0 -mr-32 -mt-32 w-96 h-96 rounded-full bg-blue-600 opacity-20 blur-[80px]"></div>
+        <div class="absolute bottom-0 left-0 -ml-32 -mb-32 w-96 h-96 rounded-full bg-indigo-500 opacity-20 blur-[80px]"></div>
+
+        <div class="relative z-10 max-w-2xl text-white">
+            <span class="inline-block py-1 px-3 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs font-semibold uppercase tracking-wider mb-6">
+                Inteligencia Operativa
+            </span>
+            
+            <h1 class="text-4xl lg:text-5xl font-bold tracking-tight mb-6 leading-tight">
+                El conocimiento de tu empresa, <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">operando en piloto automático.</span>
+            </h1>
+            
+            <p class="text-lg text-slate-300 mb-10 leading-relaxed">
+                Nuestros Agentes de IA no son simples chatbots. Son especialistas virtuales que asimilan tus manuales, contratos y normativas al instante para resolver problemas y tomar decisiones con precisión milimétrica, 24/7.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white/5 border border-white/10 p-5 rounded-xl backdrop-blur-sm">
+                    <div class="w-10 h-10 bg-blue-500/20 rounded flex items-center justify-center mb-4 text-blue-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2">Memoria Institucional (RAG)</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Sube tus PDFs y documentos corporativos. El agente basará sus respuestas estrictamente en tu información interna, evitando alucinaciones.</p>
+                </div>
+
+                <div class="bg-white/5 border border-white/10 p-5 rounded-xl backdrop-blur-sm">
+                    <div class="w-10 h-10 bg-indigo-500/20 rounded flex items-center justify-center mb-4 text-indigo-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2">Roles Específicos</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">Despliega Abogados Laborales, Auditores de Ciberseguridad o Asistentes de RRHH con personalidades y reglas de negocio adaptadas a tu sector.</p>
+                </div>
+            </div>
+            
+            <div class="mt-12 flex items-center space-x-4">
+                <div class="flex -space-x-2">
+                    <img class="w-8 h-8 rounded-full border-2 border-slate-900" src="https://i.pravatar.cc/100?img=1" alt="User">
+                    <img class="w-8 h-8 rounded-full border-2 border-slate-900" src="https://i.pravatar.cc/100?img=2" alt="User">
+                    <img class="w-8 h-8 rounded-full border-2 border-slate-900" src="https://i.pravatar.cc/100?img=3" alt="User">
+                </div>
+                <span class="text-sm text-slate-400 font-medium">Equipos de vanguardia ya están optimizando sus flujos de trabajo.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE SEGURIDAD Y PRIVACIDAD EN LOGIN -->
+    <div id="security-modal" class="hidden fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity" onclick="toggleSecurityModal()">
+        <div class="bg-white rounded-xl overflow-hidden w-full max-w-2xl shadow-2xl" onclick="event.stopPropagation()">
+            <div class="bg-slate-900 p-5 flex justify-between items-center border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    <h3 class="font-bold text-white text-lg">Compromiso de Privacidad y Seguridad</h3>
+                </div>
+                <button onclick="toggleSecurityModal()" class="text-slate-400 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 md:p-8 max-h-[70vh] overflow-y-auto text-sm text-slate-600 space-y-6">
+                <p>En <strong>Process Intelligence AI</strong>, la confidencialidad de su información operativa es nuestra máxima prioridad. Para garantizar la protección de su ecosistema de trabajo, implementamos los siguientes estándares de seguridad empresarial:</p>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-base mb-1">1. Privacidad de Inteligencia Artificial (Zero-Training)</h4>
+                    <p>Sus documentos, manuales y conversaciones son procesados exclusivamente a través de conexiones API empresariales. <strong>Ningún dato proporcionado por su empresa es utilizado para entrenar modelos de Inteligencia Artificial públicos</strong>. Su información le pertenece únicamente a usted.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-base mb-1">2. Aislamiento Estricto de Datos</h4>
+                    <p>Operamos bajo una arquitectura de bases de datos <em>Multi-tenant</em> de alta seguridad. Cada archivo inyectado en el sistema cuenta con un sellado que lo vincula exclusivamente a su identificador de empresa, imposibilitando físicamente que sus datos se crucen o sean visibles para otros clientes de la plataforma.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-base mb-1">3. Encriptación de Accesos e Infraestructura</h4>
+                    <p>Las contraseñas de nuestros usuarios no son legibles por nuestros administradores, protegidas mediante algoritmos de <em>hashing</em> unidireccional. Toda la plataforma está alojada en infraestructura de nube segura con protocolos de encriptación estándar de la industria.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900 text-base mb-1">4. Responsabilidad Compartida</h4>
+                    <p>La ciberseguridad es un esfuerzo conjunto. Instamos a nuestros clientes a utilizar contraseñas robustas y a no compartir sus credenciales. La plataforma no se responsabiliza por brechas de seguridad derivadas del mal manejo de las claves por parte del usuario final.</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-200 text-right">
+                <button onclick="toggleSecurityModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-semibold transition shadow-sm">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSecurityModal() {
+            const modal = document.getElementById('security-modal');
+            modal.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
