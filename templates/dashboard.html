@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Process Intelligence AI</title>
+    <title>Dashboard - Agents AI Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -30,20 +30,19 @@
 
     <!-- Fondo Dinámico con Grilla y Luces -->
     <div class="fixed inset-0 z-[-1] bg-slate-50 bg-grid-light">
-        <!-- Luz azul superior izquierda -->
         <div class="absolute top-[-10%] left-[-5%] w-[40vw] h-[40vw] rounded-full bg-blue-500/10 blur-[100px] pointer-events-none"></div>
-        <!-- Luz índigo central derecha -->
         <div class="absolute top-[40%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none"></div>
-        <!-- Luz celeste inferior -->
         <div class="absolute bottom-[-10%] left-[20%] w-[30vw] h-[30vw] rounded-full bg-sky-400/10 blur-[100px] pointer-events-none"></div>
     </div>
 
-    <!-- Barra Superior de Aviso -->
+    <!-- Barra Superior de Aviso con Botón a MercadoPago -->
     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-center shadow-md relative z-20">
-        <p class="text-sm text-white font-medium">
-            <span class="bg-white/20 px-2 py-0.5 rounded text-xs mr-2 font-bold uppercase tracking-wider">Free Trial</span>
-            Estás probando la plataforma. Te quedan <strong class="font-bold">7 días</strong> de acceso gratuito. 
-            <a href="#" class="underline ml-2 hover:text-blue-100 transition">Mejorar Plan Ahora</a>
+        <p class="text-sm text-white font-medium flex items-center justify-center flex-wrap gap-2">
+            <span class="bg-white/20 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Free Trial</span>
+            <span>Estás probando la plataforma. Te quedan <strong class="font-bold">7 días</strong> de acceso gratuito.</span>
+            <button id="btn-mejorar-plan" onclick="pagarSuscripcion()" class="bg-white text-blue-600 px-3 py-1 rounded text-xs font-bold hover:bg-blue-50 transition shadow-sm ml-2">
+                Mejorar Plan Ahora
+            </button>
         </p>
     </div>
 
@@ -52,8 +51,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center font-bold text-lg tracking-tighter shadow-[0_0_15px_rgba(59,130,246,0.5)]">C</div>
-                    <span class="text-xl font-bold tracking-tight">Platform</span>
+                    <div class="w-8 h-8 bg-blue-500 rounded flex items-center justify-center font-bold text-lg tracking-tighter shadow-[0_0_15px_rgba(59,130,246,0.5)]">A</div>
+                    <span class="text-xl font-bold tracking-tight">Agents AI Pro</span>
                 </div>
                 <div class="flex items-center space-x-6">
                     <div class="flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
@@ -168,7 +167,6 @@
         {% endif %}
 
         <!-- SECCIÓN: CATÁLOGO DE INTELIGENCIA -->
-        <!-- Si tiene agentes, esto arranca oculto. Si no tiene, arranca visible. -->
         <section id="catalog-section" class="{% if mis_agentes %}hidden{% endif %} bg-white/90 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-lg overflow-hidden mt-8">
             <div class="bg-slate-50/80 border-b border-slate-200 px-6 py-6 sm:flex sm:items-center sm:justify-between">
                 <div>
@@ -213,7 +211,7 @@
     <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-6 mt-auto relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs">
             <p class="mb-4 md:mb-0 max-w-3xl leading-relaxed">
-                <strong class="text-slate-300">Process Intelligence AI:</strong> Herramienta de asistencia tecnológica.
+                <strong class="text-slate-300">Agents AI Pro:</strong> Herramienta de asistencia tecnológica.
             </p>
             <div class="flex items-center space-x-4 mt-4 md:mt-0">
                 <button onclick="toggleSecurityModal()" class="text-slate-300 hover:text-white underline transition">Seguridad</button>
@@ -237,7 +235,7 @@
                 </button>
             </div>
             <div class="p-6 md:p-8 max-h-[70vh] overflow-y-auto text-sm text-slate-600 space-y-6">
-                <p>En <strong>Process Intelligence AI</strong>, la confidencialidad de su información operativa es nuestra máxima prioridad. Para garantizar la protección de su ecosistema de trabajo, implementamos los siguientes estándares de seguridad empresarial:</p>
+                <p>En <strong>Agents AI Pro</strong>, la confidencialidad de su información operativa es nuestra máxima prioridad. Para garantizar la protección de su ecosistema de trabajo, implementamos los siguientes estándares de seguridad empresarial:</p>
                 <div>
                     <h4 class="font-bold text-slate-900 text-base mb-1">1. Privacidad de Inteligencia Artificial (Zero-Training)</h4>
                     <p>Sus documentos, manuales y conversaciones son procesados exclusivamente a través de conexiones API empresariales. <strong>Ningún dato proporcionado por su empresa es utilizado para entrenar modelos de Inteligencia Artificial públicos</strong>. Su información le pertenece únicamente a usted.</p>
@@ -403,6 +401,36 @@
                 }
             } catch (error) {
                 alert("Error de conexión al intentar eliminar el archivo.");
+            }
+        }
+
+        // --- LÓGICA DE PAGOS MERCADOPAGO ---
+        async function pagarSuscripcion() {
+            const btn = document.getElementById('btn-mejorar-plan');
+            const textoOriginal = btn.innerText;
+            btn.innerText = 'Redirigiendo a MercadoPago...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/generar_pago', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    alert('Error al generar el pago: ' + (data.error || 'Error desconocido'));
+                    btn.innerText = textoOriginal;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error de red:', error);
+                alert('Hubo un problema de conexión. Intentá nuevamente.');
+                btn.innerText = textoOriginal;
+                btn.disabled = false;
             }
         }
     </script>
