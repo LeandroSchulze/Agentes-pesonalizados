@@ -337,30 +337,27 @@ def generar_pago():
     cur = conn.cursor()
     
     try:
-        # 1. Traemos la cotización actualizada
-        cotizacion_actual = obtener_dolar_semanal(conn)
-        
-        # 2. Verificamos si ya tiene agentes para definir la variable de precio
+        # 1. Ya no buscamos el dólar. Pasamos directo a verificar los agentes.
         cur.execute("SELECT limite_agentes FROM customers WHERE id = %s", (customer_id,))
         resultado = cur.fetchone()
         agentes_actuales = resultado[0] if resultado and resultado[0] else 0
         
-        # 3. Lógica de variables: USD 50 el primero, USD 40 los adicionales
+        # 2. Lógica de variables directas en PESOS ARGENTINOS (ARS)
         if agentes_actuales >= 1:
-            precio_base_usd = 40
-            titulo_item = "Suscripción PRO - Agente Adicional"
+            precio_ars = 30000.0  # Precio del agente extra
+            titulo_item = "Agents AI Pro - Agente Adicional"
+            descripcion_item = "Licencia operativa adicional en Process Intelligence"
         else:
-            precio_base_usd = 50
-            titulo_item = "Suscripción PRO - 1 Agente de IA"
+            precio_ars = 60000.0  # Precio del primer agente
+            titulo_item = "Agents AI Pro - Suscripción Base"
+            descripcion_item = "Licencia mensual de plataforma + 1 Agente de IA"
             
-        precio_ars = precio_base_usd * cotizacion_actual
-        
     except Exception as e:
         print("Error obteniendo datos:", e)
-        # Fallback de emergencia por si falla la API
-        precio_base_usd = 50 
-        precio_ars = precio_base_usd * 1000.0 
-        titulo_item = "Suscripción PRO - 1 Agente de IA"
+        # Fallback de emergencia por si falla la base de datos
+        precio_ars = 60000.0 
+        titulo_item = "Agents AI Pro - Suscripción Base"
+        descripcion_item = "Licencia mensual de plataforma + 1 Agente de IA"
     finally:
         cur.close()
         conn.close()
@@ -368,15 +365,15 @@ def generar_pago():
     if not sdk:
         return jsonify({"error": "SDK de MercadoPago no configurado. Falta el Token."}), 500
 
-    # 4. Armamos la preferencia con el precio dinámico calculado
+    # 3. Armamos la preferencia con el precio fijo en ARS
     preference_data = {
         "items": [
             {
                 "title": titulo_item,
-                "description": f"Licencia mensual operativa en Process Intelligence (Valor base: USD {precio_base_usd})",
+                "description": descripcion_item,
                 "quantity": 1,
                 "currency_id": "ARS",
-                "unit_price": round(precio_ars, 2)
+                "unit_price": float(precio_ars)
             }
         ],
         "back_urls": {
